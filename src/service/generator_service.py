@@ -1,6 +1,6 @@
 import random
 
-from domain.instruction import Opcode
+from src.domain.instruction import Opcode
 
 SIMPLE_OPCODES = [
     Opcode.INC,
@@ -18,24 +18,26 @@ random.seed(42)
 
 
 
-def random_state(rng):
+def random_state():
     return tuple(
-        rng.randrange(10)
+        random.randint(0, 9)
         for _ in range(4) # Fixed size of 4 for the state for now
     )
 
-def random_instruction():
-    instruction = random.choice(SIMPLE_OPCODES + COMPLEX_OPCODES)
+def random_instructions():
+    num_instructions = random.randint(3, 8)  # Random number of instructions between 3 and 8
+    instructions = []
+    for _ in range(num_instructions):
+        instruction = random.choice(SIMPLE_OPCODES + COMPLEX_OPCODES)
+        index1 = random.randint(0, 3)
 
-    index1 = random.randint(0, 3)
+        if instruction in SIMPLE_OPCODES:
+            instructions.append((str(instruction), index1, None))
+        elif instruction in COMPLEX_OPCODES:
+            index2 = get_non_matching_index(index1)
+            instructions.append((str(instruction), index1, index2))
 
-    if instruction in SIMPLE_OPCODES:
-        return (instruction,index1, None)
-
-    if instruction in COMPLEX_OPCODES:
-        index2 = get_non_matching_index(index1) 
-        return (instruction, index1, index2)
-
+    return instructions
 
 
 def get_non_matching_index(index1):
