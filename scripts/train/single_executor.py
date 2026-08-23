@@ -43,6 +43,11 @@ def _append_instruction_sample(data, state, instruction):
     return next_state
 
 
+def _stack_state_batch(state_batch):
+    """Convert DataLoader's list of register tensors to ``[B, 4]``."""
+    return torch.stack(tuple(state_batch), dim=1)
+
+
 def load_csv(file_path):
     """Load semicolon-delimited programs as single-step training samples.
 
@@ -100,19 +105,19 @@ def train():
 
     train_loader = torch.utils.data.DataLoader(
         train_data,
-        batch_size=1024,
+        batch_size=256,
         shuffle=True,
         num_workers=7,
     )
 
     validation_loader = torch.utils.data.DataLoader(
         validation_data,
-        batch_size=1024,
+        batch_size=256,
         shuffle=False,
         num_workers=7,
     )
 
-    for epoch in range(10):
+    for epoch in range(50):
 
         # --------------------
         # TRAIN
@@ -129,11 +134,11 @@ def train():
 
             state, opcode, arg1, arg2, next_state = batch
 
-            state = state.to(device).long()
+            state = _stack_state_batch(state).to(device).long()
             opcode = opcode.to(device).long()
             arg1 = arg1.to(device).long()
             arg2 = arg2.to(device).long()
-            next_state = next_state.to(device).long()
+            next_state = _stack_state_batch(next_state).to(device).long()
 
             optimizer.zero_grad()
 
@@ -190,11 +195,11 @@ def train():
 
                 state, opcode, arg1, arg2, next_state = batch
 
-                state = state.to(device).long()
+                state = _stack_state_batch(state).to(device).long()
                 opcode = opcode.to(device).long()
                 arg1 = arg1.to(device).long()
                 arg2 = arg2.to(device).long()
-                next_state = next_state.to(device).long()
+                next_state = _stack_state_batch(next_state).to(device).long()
 
                 logits = model(
                     state,
@@ -259,3 +264,7 @@ def train():
             f"Val Reg Acc: {validation_register_accuracy:.2%} | "
             f"Val State Acc: {validation_state_accuracy:.2%}"
         )
+
+
+if __name__ == "__main__":
+    train()
