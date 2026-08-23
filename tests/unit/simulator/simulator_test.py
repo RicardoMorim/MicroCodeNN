@@ -2,7 +2,6 @@ from src.domain.instruction import Instruction, Opcode
 from scripts.simulator import execute_instruction, execute_program
 
 
-
 def test_add():
     state = (3, 7, 1, 9)
 
@@ -138,12 +137,6 @@ def test_swap_twice_restores_state():
 
     assert final_state == initial_state
 
-# Test extremes 
-# INC 9 -> 0
-# DEC 0 -> 9
-# 9 + 9 -> 8
-# 2 - 8 -> 4
-# All mod 10
 def test_modulus_behavior():
     initial_state = (9, 0, 9, 2)
     program = [
