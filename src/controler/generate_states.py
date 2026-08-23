@@ -1,5 +1,17 @@
 from src.service.generator_service import random_instructions, random_state
 
+
+def format_training_example(states, instructions):
+    """Format a state and its instructions as a semicolon-delimited row."""
+    state_values = ",".join(str(value) for value in states)
+    instruction_values = ";".join(
+        ",".join(str(value) for value in instruction)
+        for instruction in instructions
+    )
+
+    return f"{state_values};{instruction_values}"
+
+
 def generate_state():
     """
     Generates states using the generate_states_service.
@@ -18,17 +30,18 @@ def generate_instructions():
         list: A list of generated instructions.
     """
 
-    return [random_instructions()]
+    return random_instructions()
 
 if __name__ == "__main__":
-    n = 200  # Number of sets of states and instructions to generate
+    n = 5000  # Number of sets of states and instructions to generate
     sets = []
     for i in range(n):
         states = generate_state()
         instructions = generate_instructions()
         sets.append((states, instructions))
 
-    # Save the generated sets to a file
-    with open("validation.txt", "w") as f:
+    # Save the generated sets to a semicolon-delimited file.
+    with open("data/phase0/validation.csv", "w") as f:
+        f.write("State;Instruction\n")
         for states, instructions in sets:
-            f.write(f"States: {states}, Instructions: {instructions}\n")    
+            f.write(f"{format_training_example(states, instructions)}\n")
