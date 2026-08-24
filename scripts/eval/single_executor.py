@@ -2,7 +2,13 @@ from src.domain.instruction import Instruction, Opcode
 import torch 
 from src.model.single_executor import SingleExecutor
 from collections import defaultdict
-from scripts.train.single_executor import load_csv, _stack_state_batch
+from scripts.train.single_executor import (
+    _create_add_sub_metrics,
+    _print_add_sub_metrics,
+    _stack_state_batch,
+    _update_add_sub_metrics,
+    load_csv,
+)
 
 def evaluate_model(model, data_loader, device):
     model.eval()
@@ -11,6 +17,7 @@ def evaluate_model(model, data_loader, device):
     correct_states = 0
     correct_by_opcode = defaultdict(int)
     total_by_opcode = defaultdict(int)
+    add_sub_metrics = _create_add_sub_metrics()
 
     with torch.no_grad():
         for batch in data_loader:
@@ -39,11 +46,22 @@ def evaluate_model(model, data_loader, device):
             correct_registers += (predicted_next_states == next_state).sum().item()
             correct_states += (predicted_next_states == next_state).all(dim=1).sum().item()
 
+            _update_add_sub_metrics(
+                add_sub_metrics,
+                state,
+                opcode,
+                arg1,
+                arg2,
+                predicted_next_states,
+                next_state,
+            )
+
     register_accuracy = correct_registers / (total_samples * 4)  # 4 registers per sample
     state_accuracy = correct_states / total_samples
 
     print(f"Register Accuracy: {register_accuracy:.4f}")
     print(f"State Accuracy: {state_accuracy:.4f}")
+    _print_add_sub_metrics("Eval", add_sub_metrics)
     print("Per-Opcode Accuracy:")
     for op, correct in correct_by_opcode.items():
         total = total_by_opcode[op]
@@ -66,7 +84,7 @@ if __name__ == "__main__":
     # Example usage
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SingleExecutor().to(device)
-    model.load_state_dict(torch.load("checkpoints/phase0/single_instruction_model_epoch_50.pt", map_location=device))
+    model.load_state_dict(torch.load("checkpoints/phase1/single_instruction_model_epoch_33.pt", map_location=device))
     # Load your data_loader here
     data = load_csv("data/phase0/test.csv") 
 

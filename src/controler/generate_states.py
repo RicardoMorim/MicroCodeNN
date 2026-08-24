@@ -33,7 +33,7 @@ def generate_instructions():
     return random_instructions()
 
 if __name__ == "__main__":
-    n = 50000  # Number of sets of states and instructions to generate
+    n = 500000  # Number of sets of states and instructions to generate
     sets = []
     for i in range(n):
         states = generate_state()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         sets.append((states, instructions))
 
     # Save the generated sets to a semicolon-delimited file.
-    with open("data/phase0/single_instruction_train.csv", "w") as f:
+    with open("data/phase1/single_instruction_train.csv", "w") as f:
         f.write("State;Instruction\n")
         for states, instructions in sets:
             f.write(f"{format_training_example(states, instructions)}\n")
