@@ -2,6 +2,8 @@ from scripts.simulator import execute_instruction
 from src.domain.instruction import Instruction, Opcode
 from src.model.single_executor import SingleExecutor
 import torch
+from collections import defaultdict
+
 
 NONE_REGISTER = 4
 
@@ -117,6 +119,7 @@ def train():
         num_workers=7,
     )
 
+
     for epoch in range(50):
 
         # --------------------
@@ -124,7 +127,8 @@ def train():
         # --------------------
 
         model.train()
-
+        correct_by_opcode = defaultdict(int)
+        total_by_opcode = defaultdict(int)
         train_loss = 0.0
         train_correct_registers = 0
         train_correct_states = 0
@@ -164,16 +168,20 @@ def train():
             train_loss += loss.item()
 
             predictions = logits.argmax(dim=-1)
+            exact = (predictions == next_state).all(dim=1)
+
+            for op, is_correct in zip(opcode.cpu(), exact.cpu()):
+                op = int(op.item())
+
+                total_by_opcode[op] += 1
+
+                if bool(is_correct):
+                    correct_by_opcode[op] += 1
 
             # Register-level accuracy
             train_correct_registers += (
                 predictions == next_state
             ).sum().item()
-
-            # Exact-state accuracy
-            exact = (
-                predictions == next_state
-            ).all(dim=1)
 
             train_correct_states += exact.sum().item()
             train_examples += state.size(0)
@@ -255,6 +263,18 @@ def train():
             / validation_examples
         )
 
+
+        for op in Opcode:
+            correct = correct_by_opcode[int(op)]
+            total = total_by_opcode[int(op)]
+
+            accuracy = correct / total
+
+            print(
+                f"{op.name}: "
+                f"{accuracy:.2%} "
+                f"({correct}/{total})"
+    )
         print(
             f"Epoch {epoch + 1:02d} | "
             f"Train Loss: {avg_train_loss:.4f} | "
@@ -263,6 +283,23 @@ def train():
             f"Val Loss: {avg_validation_loss:.4f} | "
             f"Val Reg Acc: {validation_register_accuracy:.2%} | "
             f"Val State Acc: {validation_state_accuracy:.2%}"
+        )
+        
+
+        with open("checkpoints/phase0/single_instruction_train_log.csv", "a") as log_file:
+            log_file.write(
+                f"{epoch + 1},"
+                f"{avg_train_loss:.4f},"
+                f"{train_register_accuracy:.4f},"
+                f"{train_state_accuracy:.4f},"
+                f"{avg_validation_loss:.4f},"
+                f"{validation_register_accuracy:.4f},"
+                f"{validation_state_accuracy:.4f}\n"
+            )
+
+        torch.save(
+            model.state_dict(),
+            f"checkpoints/phase0/single_instruction_model_epoch_{epoch + 1}.pt",
         )
 
 
