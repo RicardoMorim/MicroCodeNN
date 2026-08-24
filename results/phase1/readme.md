@@ -6,6 +6,25 @@ That dataset was sufficient to make the model learn nearly everything with stron
 
 The evaluation was done on the same 5M dataset used in Phase 0.
 
+# Model:
+- value embedding: 10 × 16
+- opcode embedding: 6 × 16
+- register embedding: 5 × 16
+- MLP: 112 → 128 → 128 → 40
+- activation: GELU
+- optimizer: AdamW
+- lr: 1e-3
+- weight decay: 1e-5
+- batch size: 256
+- epochs: 33
+
+# dataset:
+Train samples: 500,000
+Eval samples: 5,000,000
+Generator seed: 42
+Potential train/eval overlap: not yet excluded / checked
+
+
 ## Results
 
 - Register Accuracy: **0.9991**
@@ -35,19 +54,16 @@ The evaluation was done on the same 5M dataset used in Phase 0.
 
 ## Interpretation
 
-> The model is clearly able to learn the instructions themselves at a very high level of accuracy.
-
 We could try making the model larger, using different embeddings, or tuning the architecture to squeeze out even better results. However, the current model can approximate the one-step transition function for all six instructions with very high accuracy under this data regime.
 
 The real challenge now is not instruction learning itself, but making the model reason about those instructions and execute them across multiple steps. That is the focus of the next phase.
 
+Because the one-step state-transition space is small and the training set is large relative to that space, this phase should not be interpreted as evidence of systematic algorithmic generalization. Its purpose is to establish that one-step execution is not the bottleneck before moving to multi-step composition.
+
 ## Next Steps
 
-1. Plan and implement Phase 2, focused on teaching the model to reason about instructions and execute them step by step.
-2. Compare two approaches:
-   - letting the model perform the reasoning internally and output only the final result for multi-step tasks;
-   - using the Phase 1 model inside an algorithmic loop where it sees the current state and the next instruction to execute, outputs the next state, and repeats until all instructions are complete.
-3. If there is not a large difference in accuracy, we can transfer this knowledge into an LLM by training it to think in a more algorithmic way.
-
-
+1. Build a discrete-rollout baseline by repeatedly applying the trained one-step executor with argmax state feedback.
+2. Build a latent multi-step executor that keeps a continuous hidden state and decodes only at the end.
+3. Train on short programs and evaluate length extrapolation on unseen longer programs.
+4. Compare a single shared transition function against specialized neural operators.
 

@@ -2,6 +2,24 @@
 
 Teste realizado após o treino da phase 0 com 20k samples de treino e 5M samples de teste.
 
+# Model:
+- value embedding: 10 × 16
+- opcode embedding: 6 × 16
+- register embedding: 5 × 16
+- MLP: 112 → 128 → 128 → 40
+- activation: GELU
+- optimizer: AdamW
+- lr: 1e-3
+- weight decay: 1e-5
+- batch size: 256
+- epochs: 50
+
+# dataset:
+Train samples: 20,000
+Eval samples: 5,000,000
+Generator seed: 42
+Potential train/eval overlap: not yet excluded / checked
+
 ## Métricas gerais
 
 - Register Accuracy: 0.9387
@@ -31,7 +49,7 @@ Teste realizado após o treino da phase 0 com 20k samples de treino e 5M samples
 
 - O modelo apresenta boa acurácia para os opcodes `DEC`, `SWAP`, `INC` e `COPY`.
 - A acurácia para os opcodes `ADD` e `SUB` é muito baixa, o que sugere que o modelo tem dificuldade em aprender a lógica desses dois casos.
-- Isso indica que a arquitetura atual consegue lidar bem com operações simples de manipulação direta, mas ainda não generaliza adequadamente para operações que exigem cálculo/transformação de valores entre registros.
+- With 20k training samples, the model learned INC, DEC, COPY and SWAP substantially better than ADD and SUB. At this stage, it was unclear whether the limitation came from architecture, representation, optimization, or insufficient data coverage.
 
 ## Próximos passos
 
