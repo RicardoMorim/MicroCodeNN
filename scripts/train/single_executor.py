@@ -163,6 +163,27 @@ def load_csv(file_path):
     return data
 
 
+def load_programs_csv(file_path):
+    """Load each CSV row as an initial state and instruction sequence."""
+    programs = []
+
+    with open(file_path, "r") as file:
+        next(file, None)  # Skip the State;Instruction header.
+        for line_number, line in enumerate(file, start=2):
+            groups = line.strip().split(";")
+            if not groups or not groups[0]:
+                continue
+
+            initial_state = _parse_state(groups[0], line_number)
+            instructions = tuple(
+                _parse_instruction(group, line_number)
+                for group in groups[1:]
+            )
+            programs.append((initial_state, instructions))
+
+    return programs
+
+
 def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

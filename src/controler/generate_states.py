@@ -41,7 +41,7 @@ if __name__ == "__main__":
         sets.append((states, instructions))
 
     # Save the generated sets to a semicolon-delimited file.
-    with open("data/phase1/single_instruction_train.csv", "w") as f:
+    with open("data/phase2/single_instruction_train.csv", "w") as f:
         f.write("State;Instruction\n")
         for states, instructions in sets:
             f.write(f"{format_training_example(states, instructions)}\n")
