@@ -27,7 +27,7 @@ class MultiStepExecutor(nn.Module):
         )
 
         self.encoder = nn.Sequential(
-            nn.Linear(4 * embedding_dim, hidden_dim),
+            nn.Linear(4 * embedding_dim, hidden_dim), # 4, because of the 3 embedding we have + the second argument (the registers), so we flat those 4 encodings into a single vector of size 4 * embedding_dim (all embeddings are of the same size here).
             nn.GELU(),
         )
 
